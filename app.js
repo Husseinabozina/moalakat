@@ -7,12 +7,20 @@
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
+  const arNum = (n) => Number(n).toLocaleString("ar-EG");
+
+  const refs = (s) => esc(s).replace(/\[\[(\d+)\]\]/g, (_, n) =>
+    `<a class="ref" href="#source-${n}" title="انظر المصدر ${arNum(n)}">[${arNum(n)}]</a>`
+  );
+
+  const paragraph = (s) => `<p>${refs(s)}</p>`;
+
   const wordsHTML = (words) => `
     <div class="words">
       ${words.map(([term, desc]) => `
         <div class="word">
           <b>${esc(term)}</b>
-          <span>${esc(desc)}</span>
+          <span>${refs(desc)}</span>
         </div>`).join("")}
     </div>`;
 
@@ -21,15 +29,18 @@
       ${items.map(([term, desc]) => `
         <div class="syntax-line">
           <b>${esc(term)}</b>
-          <span>${esc(desc)}</span>
+          <span>${refs(desc)}</span>
         </div>`).join("")}
     </div>`;
 
-  const sourcesHTML = (items) => items.map(([name, note]) => `
-    <div class="source-note">
-      <strong>${esc(name)}</strong>
-      <div>${esc(note)}</div>
-    </div>`).join("");
+  const issuesHTML = (items) => `
+    <div class="issues">
+      ${items.map(([question, answer]) => `
+        <div class="issue">
+          <h4>${esc(question)}</h4>
+          <p>${refs(answer)}</p>
+        </div>`).join("")}
+    </div>`;
 
   const details = (title, body, open = false) => `
     <details ${open ? "open" : ""}>
@@ -40,7 +51,7 @@
   mount.innerHTML = data.verses.map(v => `
     <article class="verse-card" id="verse-${v.n}">
       <div class="verse-top">
-        <div class="verse-number">البيت ${v.n.toLocaleString("ar-EG")}</div>
+        <div class="verse-number">البيت ${arNum(v.n)}</div>
         <div class="verse-text" aria-label="نص البيت">
           <span>${esc(v.a)}</span>
           <span>${esc(v.b)}</span>
@@ -49,20 +60,33 @@
       </div>
 
       <div class="quick-meaning">
-        <b>المعنى السريع:</b>
-        ${esc(v.quick)}
+        <b>المعنى عند الشراح:</b>
+        ${refs(v.quick)}
       </div>
 
       <div class="accordion">
-        ${details("المفردات التي تحتاج شرحًا", wordsHTML(v.words), v.n === 1)}
-        ${details("أعد ترتيب الجملة نثرًا", `<p>${esc(v.prose)}</p>`)}
-        ${details("التركيب والنحو والإعراب المهم", syntaxHTML(v.syntax), v.n === 5)}
-        ${details("البلاغة وعلم المعاني", `<p>${esc(v.rhetoric)}</p>`)}
-        ${details("السياق الأدبي والثقافي", `<p>${esc(v.culture)}</p>`)}
-        ${details("ماذا قال الشراح؟", sourcesHTML(v.sources))}
+        ${details("شرح الألفاظ", wordsHTML(v.words), v.n === 1)}
+        ${details("المعنى بترتيب أوضح", paragraph(v.prose))}
+        ${details("التركيب والإعراب", syntaxHTML(v.syntax), v.n === 5)}
+        ${details("مسائل تحتاج إلى تحرير", issuesHTML(v.issues), v.n === 5)}
+        ${details("مصادر هذا البيت", `<p class="verse-sources">${refs(v.sourceView)}</p>`)}
       </div>
     </article>
   `).join("");
+
+  const bibliography = document.getElementById("bibliography");
+  if (bibliography && data.sources) {
+    bibliography.innerHTML = data.sources.map(s => `
+      <article class="bibliography-item" id="source-${s.id}">
+        <div class="bibliography-id">[${arNum(s.id)}]</div>
+        <div>
+          <h3>${esc(s.title)}</h3>
+          <p>${esc(s.detail)}</p>
+          <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">فتح المصدر</a>
+        </div>
+      </article>
+    `).join("");
+  }
 
   const allDetails = () => [...document.querySelectorAll(".accordion details")];
 
