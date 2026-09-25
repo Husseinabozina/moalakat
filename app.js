@@ -68,6 +68,7 @@
         ${details("شرح الألفاظ", wordsHTML(v.words), v.n === 1)}
         ${details("المعنى بترتيب أوضح", paragraph(v.prose))}
         ${details("التركيب والإعراب", syntaxHTML(v.syntax), v.n === 5)}
+        ${v.bayan?.length ? details("علم البيان والصورة", syntaxHTML(v.bayan), v.n === 3 || v.n === 4) : ""}
         ${details("مسائل تحتاج إلى تحرير", issuesHTML(v.issues), v.n === 5)}
         ${details("مصادر هذا البيت", `<p class="verse-sources">${refs(v.sourceView)}</p>`)}
       </div>
