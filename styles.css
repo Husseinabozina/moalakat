@@ -606,3 +606,9 @@ footer {
   .ref { color: black; text-decoration: none; }
   .bibliography-item { break-inside: avoid; }
 }
+
+
+/* ===== Bayan / rhetorical image ===== */
+.accordion details:has(summary:first-child) .detail-body .syntax-line b {
+  align-self: start;
+}
